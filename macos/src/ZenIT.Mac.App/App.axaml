@@ -1,0 +1,107 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="using:ZenIT.Mac.App.Converters"
+             x:Class="ZenIT.Mac.App.App"
+             RequestedThemeVariant="Light">
+  <Application.Resources>
+    <converters:StringToBrushConverter x:Key="BrushConv" />
+    <SolidColorBrush x:Key="ZenTealBrush" Color="#00A7A5" />
+    <SolidColorBrush x:Key="ZenDeepTealBrush" Color="#006D73" />
+    <SolidColorBrush x:Key="ZenNavyBrush" Color="#172B3A" />
+    <SolidColorBrush x:Key="ZenMutedBrush" Color="#6B7A8A" />
+    <SolidColorBrush x:Key="ZenBackgroundBrush" Color="#EEF6FF" />
+    <SolidColorBrush x:Key="ZenCardBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="ZenStrokeBrush" Color="#DCEAF4" />
+    <SolidColorBrush x:Key="ZenSuccessBrush" Color="#20B486" />
+    <SolidColorBrush x:Key="ZenWarnBrush" Color="#F5A623" />
+    <SolidColorBrush x:Key="ZenDangerBrush" Color="#E5484D" />
+  </Application.Resources>
+
+  <Application.Styles>
+    <FluentTheme />
+
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="{StaticResource ZenCardBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource ZenStrokeBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="16" />
+      <Setter Property="Padding" Value="18" />
+      <Setter Property="BoxShadow" Value="0 8 24 0 #14172B3A" />
+    </Style>
+
+    <Style Selector="TextBlock.h1">
+      <Setter Property="FontSize" Value="24" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="{StaticResource ZenNavyBrush}" />
+    </Style>
+    <Style Selector="TextBlock.h2">
+      <Setter Property="FontSize" Value="17" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{StaticResource ZenNavyBrush}" />
+    </Style>
+    <Style Selector="TextBlock.muted">
+      <Setter Property="Foreground" Value="{StaticResource ZenMutedBrush}" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+    <Style Selector="TextBlock.body">
+      <Setter Property="Foreground" Value="{StaticResource ZenNavyBrush}" />
+      <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <Style Selector="Button.primary">
+      <Setter Property="Background" Value="{StaticResource ZenTealBrush}" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="14 8" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource ZenDeepTealBrush}" />
+    </Style>
+
+    <Style Selector="Button.secondary">
+      <Setter Property="Background" Value="White" />
+      <Setter Property="Foreground" Value="{StaticResource ZenDeepTealBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource ZenStrokeBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="14 8" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="Button.chip">
+      <Setter Property="Background" Value="White" />
+      <Setter Property="Foreground" Value="{StaticResource ZenDeepTealBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource ZenStrokeBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="16" />
+      <Setter Property="Padding" Value="12 6" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+    <Style Selector="Button.chip.selected">
+      <Setter Property="Background" Value="{StaticResource ZenTealBrush}" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="BorderBrush" Value="{StaticResource ZenTealBrush}" />
+    </Style>
+
+    <Style Selector="Button.nav">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="#D7E7EE" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="12 10" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="FontSize" Value="13" />
+    </Style>
+    <Style Selector="Button.nav.selected">
+      <Setter Property="Background" Value="#0E3A44" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="TextBox">
+      <Setter Property="CornerRadius" Value="10" />
+    </Style>
+  </Application.Styles>
+</Application>

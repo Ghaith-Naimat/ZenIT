@@ -1,0 +1,36 @@
+namespace ZenIT.Core.Workflows;
+
+public enum WorkflowId
+{
+    InternetNotWorking,
+    FixEverythingSafe,
+    ImproveDevicePerformance,
+    ChromeNotWorking,
+    CameraOrMicrophoneNotWorking,
+    SoundNotWorking,
+    SlackNotWorking,
+    ZoomNotWorking,
+    GoogleDriveNotSyncing,
+    SecurityCheck,
+    DeviceHealthCheck,
+    CollectITReport,
+    ContactIT,
+    FullMacRepairCheck,
+    ItFlushDns,
+    RenewDhcpLease,
+    RestartWifi,
+    DnsRepair,
+    VerifyStartupDisk,
+    SystemIntegrityCheck,
+    SoftwareUpdateCheck,
+    SoftwareUpdateInstallAll,
+    ItTempCleanup,
+    StartupAnalysis,
+    RestartCoreAudio,
+    RestartPrintingSystem,
+    RestartMDnsResponder,
+    SpotlightReindex,
+    AdvancedEventReport,
+    ServiceHealthRepair,
+    ExportAdvancedDiagnosticPackage
+}

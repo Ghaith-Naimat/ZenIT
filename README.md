@@ -23,6 +23,12 @@ dotnet build .\ZenIT.sln -c Release
 
 The published executable is created at `publish/win-x64/ZenIT.exe`.
 
+## macOS Version
+
+A native macOS version (Avalonia UI) lives in `macos/` with its own solution, scripts, and
+docs. It shares no build files with the Windows app, so nothing here changes for Windows.
+See `macos/README.md` and `macos/docs/Mac-Deployment-Guide.md`.
+
 ## Security Boundaries
 
 Employee workflows are non-elevated and registered in `WorkflowRegistry`. ZenIT does not store plaintext passwords and does not collect personal files, browser history, cookies, tokens, documents, downloads, emails, chat content, or Google Drive file names.

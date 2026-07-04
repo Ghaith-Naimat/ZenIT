@@ -7,4 +7,3 @@ obj/
 logs/*
 !logs/.gitkeep
 artifacts/
-publish/
