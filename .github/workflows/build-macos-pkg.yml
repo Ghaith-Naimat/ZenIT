@@ -12,7 +12,7 @@ permissions:
 jobs:
   build-macos-pkg:
     name: Build ZenIT macOS package
-    runs-on: macos-latest
+    runs-on: macos-15
 
     steps:
       - name: Checkout repository
@@ -23,10 +23,15 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Make macOS scripts executable
+      - name: Debug runner and repository layout
         run: |
+          pwd
+          ls -la
+          ls -la macos
+          ls -la scripts/macos
           chmod +x scripts/macos/*.sh
           chmod +x macos/scripts/*.sh
+          dotnet --info
 
       - name: Build macOS solution
         run: dotnet build macos/ZenIT.Mac.sln -c Release
@@ -37,7 +42,8 @@ jobs:
       - name: Build unsigned macOS package
         run: |
           echo "::warning::Unsigned package may show Apple Gatekeeper warning."
-          ./scripts/macos/build-pkg.sh --rid osx-arm64
+          bash -x ./scripts/macos/build-pkg.sh --rid osx-arm64
+          ls -lah publish/macos || true
 
       - name: Verify package output
         run: |
