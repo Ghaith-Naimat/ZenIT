@@ -7,6 +7,7 @@ public sealed class ReportPrivacyTests
     [Fact]
     public void ReportExporter_DoesNotAddForbiddenPrivateData()
     {
+        using var testRoot = new TestZenITRoot();
         var document = new ReportDocument(
             "ZenIT Support Package",
             "1.0.0",
@@ -23,7 +24,7 @@ public sealed class ReportPrivacyTests
             },
             "This report excludes personal files, browser history, cookies, saved passwords, tokens, chat messages, emails, Google Drive file names, and full installed software inventory.");
 
-        var paths = new ReportExporter().Export(document, "PrivacyTest");
+        var paths = new ReportExporter(testRoot.Paths).Export(document, "PrivacyTest");
         var combined = File.ReadAllText(paths.TextPath) + File.ReadAllText(paths.JsonPath) + File.ReadAllText(paths.HtmlPath);
 
         Assert.DoesNotContain("Documents/", combined, StringComparison.OrdinalIgnoreCase);

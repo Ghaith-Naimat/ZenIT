@@ -10,10 +10,12 @@ public sealed class ITPolicyService
     };
 
     private readonly string _policyPath;
+    private readonly ZenITPathProvider _paths;
 
-    public ITPolicyService(string? policyPath = null)
+    public ITPolicyService(string? policyPath = null, ZenITPathProvider? paths = null)
     {
-        _policyPath = policyPath ?? ZenITPaths.ITPolicyPath;
+        _paths = paths ?? ZenITPathProvider.CreateProduction();
+        _policyPath = policyPath ?? _paths.ITPolicyPath;
     }
 
     public ITPolicy Load()
@@ -36,7 +38,7 @@ public sealed class ITPolicyService
 
     public ITPolicy LoadOrCreate()
     {
-        Directory.CreateDirectory(ZenITPaths.PolicyDirectory);
+        Directory.CreateDirectory(_paths.PolicyDirectory);
         if (!File.Exists(_policyPath))
         {
             var defaults = new ITPolicy();
@@ -56,7 +58,7 @@ public sealed class ITPolicyService
 
     public void Save(ITPolicy policy)
     {
-        Directory.CreateDirectory(ZenITPaths.PolicyDirectory);
+        Directory.CreateDirectory(_paths.PolicyDirectory);
         AtomicJsonFile.Write(_policyPath, Normalize(policy), JsonOptions);
     }
 

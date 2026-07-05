@@ -9,7 +9,9 @@ public sealed class ConfigurationTests
     [Fact]
     public void AppSettings_NormalizesInvalidLanguageAndTheme()
     {
-        var tempPath = Path.Combine(Path.GetTempPath(), $"ZenIT-settings-{Guid.NewGuid():N}.json");
+        using var testRoot = new TestZenITRoot();
+        var tempPath = testRoot.Paths.SettingsPath;
+        Directory.CreateDirectory(testRoot.Paths.ConfigDirectory);
         File.WriteAllText(tempPath, JsonSerializer.Serialize(new AppSettings
         {
             Language = "fr",
@@ -18,7 +20,7 @@ public sealed class ConfigurationTests
             ReportRetentionDays = 0
         }));
 
-        var settings = new AppSettingsService(tempPath).LoadOrCreate();
+        var settings = new AppSettingsService(tempPath, testRoot.Paths).LoadOrCreate();
 
         Assert.Equal("en", settings.Language);
         Assert.Equal("Dark", settings.Theme);
@@ -30,7 +32,9 @@ public sealed class ConfigurationTests
     [Fact]
     public void ProtectedPolicy_NormalizesAndOverridesSensitiveValues()
     {
-        var tempPath = Path.Combine(Path.GetTempPath(), $"ZenIT-policy-{Guid.NewGuid():N}.json");
+        using var testRoot = new TestZenITRoot();
+        var tempPath = testRoot.Paths.ITPolicyPath;
+        Directory.CreateDirectory(testRoot.Paths.PolicyDirectory);
         File.WriteAllText(tempPath, JsonSerializer.Serialize(new ITPolicy
         {
             EnableITMode = true,
@@ -40,7 +44,7 @@ public sealed class ConfigurationTests
             ContactITUrl = "http://unsafe.example"
         }));
 
-        var policy = new ITPolicyService(tempPath).LoadOrCreate();
+        var policy = new ITPolicyService(tempPath, testRoot.Paths).LoadOrCreate();
 
         Assert.True(policy.EnableITMode);
         Assert.Equal(ITPolicy.DefaultITModeUsername, policy.ITModeUsername);

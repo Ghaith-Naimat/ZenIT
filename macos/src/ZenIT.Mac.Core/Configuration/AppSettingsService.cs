@@ -10,17 +10,19 @@ public sealed class AppSettingsService
     };
 
     private readonly string _settingsPath;
+    private readonly ZenITPathProvider _paths;
 
-    public AppSettingsService(string? settingsPath = null)
+    public AppSettingsService(string? settingsPath = null, ZenITPathProvider? paths = null)
     {
-        _settingsPath = settingsPath ?? ZenITPaths.SettingsPath;
+        _paths = paths ?? ZenITPathProvider.CreateProduction();
+        _settingsPath = settingsPath ?? _paths.SettingsPath;
     }
 
     public AppSettings LoadOrCreate()
     {
-        Directory.CreateDirectory(ZenITPaths.ConfigDirectory);
-        Directory.CreateDirectory(ZenITPaths.LogsDirectory);
-        Directory.CreateDirectory(ZenITPaths.ReportsDirectory);
+        Directory.CreateDirectory(_paths.ConfigDirectory);
+        Directory.CreateDirectory(_paths.LogsDirectory);
+        Directory.CreateDirectory(_paths.ReportsDirectory);
 
         if (!File.Exists(_settingsPath))
         {
@@ -42,7 +44,7 @@ public sealed class AppSettingsService
 
     public void Save(AppSettings settings)
     {
-        Directory.CreateDirectory(ZenITPaths.ConfigDirectory);
+        Directory.CreateDirectory(_paths.ConfigDirectory);
         AtomicJsonFile.Write(_settingsPath, settings, JsonOptions);
     }
 

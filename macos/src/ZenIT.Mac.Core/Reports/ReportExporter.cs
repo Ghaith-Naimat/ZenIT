@@ -9,6 +9,12 @@ namespace ZenIT.Core.Reports;
 public sealed class ReportExporter
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+    private readonly ZenITPathProvider _paths;
+
+    public ReportExporter(ZenITPathProvider? paths = null)
+    {
+        _paths = paths ?? ZenITPathProvider.CreateProduction();
+    }
 
     private static readonly IReadOnlyDictionary<string, string[]> HtmlSections = new Dictionary<string, string[]>
     {
@@ -22,9 +28,9 @@ public sealed class ReportExporter
 
     public ReportExportPaths Export(ReportDocument document, string prefix)
     {
-        Directory.CreateDirectory(ZenITPaths.ReportsDirectory);
+        Directory.CreateDirectory(_paths.ReportsDirectory);
         var basePath = Path.Combine(
-            ZenITPaths.ReportsDirectory,
+            _paths.ReportsDirectory,
             $"{Sanitize(prefix)}-{Sanitize(document.Device)}-{Sanitize(document.User)}-{document.Timestamp:yyyyMMdd-HHmmss}");
 
         var paths = new ReportExportPaths(basePath + ".txt", basePath + ".json", basePath + ".html");
