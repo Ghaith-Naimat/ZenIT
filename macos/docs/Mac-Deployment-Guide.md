@@ -1,77 +1,175 @@
-# ZenIT for Mac - Deployment Guide
+# ZenIT macOS Deployment Guide
+
+ZenIT for macOS is deployed through a signed or unsigned `.pkg` installer. Do not use DMG as the final JumpCloud deployment format.
 
 ## Requirements
 
-- macOS 11 (Big Sur) or later; Apple Silicon (`osx-arm64`) or Intel (`osx-x64`).
-- Build machine: .NET 8 SDK. End-user devices need nothing extra - the publish output is self-contained.
+- macOS 11 Big Sur or later.
+- Build machine: macOS with .NET 8 SDK, `pkgbuild`, `productbuild`, and Xcode command line tools.
+- Optional signing: Apple Developer ID Installer certificate.
+- Optional notarization: Apple notarytool credentials or keychain profile.
 
-## Build the deployable
+## Build the App Bundle
 
-```bash
-cd macos
-./scripts/publish-zenit-mac.sh all
-```
-
-Outputs per architecture:
-
-- `publish/<rid>/ZenIT.app` - self-contained app bundle (ad-hoc signed).
-- `publish/ZenIT-Mac-<rid>.zip` - zip of the bundle for distribution.
-
-## Local install
+The package build script uses `macos/ZenIT.app` as the preferred input. If it is missing, the script publishes the app from `macos/ZenIT.Mac.sln` for the selected runtime identifier.
 
 ```bash
-./scripts/install-zenit-mac.sh
+./scripts/macos/build-pkg.sh --rid osx-arm64
 ```
 
-This copies `ZenIT.app` into `/Applications` (or `~/Applications` when not writable) and
-provisions `~/Library/Application Support/ZenIT/Policy/itpolicy.json`. Without the policy
-file, the app runs with IT Mode disabled - identical behavior to the Windows build.
-
-## JumpCloud / MDM deployment
-
-1. Upload `ZenIT-Mac-<rid>.zip` to your software distribution source.
-2. Deployment command (per user session):
+You can also pass an explicit bundle:
 
 ```bash
-unzip -o ZenIT-Mac-osx-arm64.zip -d /Applications
+./scripts/macos/build-pkg.sh --app macos/publish/osx-arm64/ZenIT.app
 ```
 
-3. Deliver `itpolicy.json` to `~/Library/Application Support/ZenIT/Policy/` for each managed
-   user (or run `install-zenit-mac.sh` as the login user).
-4. For distribution outside MDM-trusted channels, replace the ad-hoc `codesign --sign -` in
-   `publish-zenit-mac.sh` with a Developer ID Application identity and notarize the bundle,
-   otherwise Gatekeeper will quarantine downloads.
+## Package Output
 
-## Data locations (per user)
+Final package:
 
-| Purpose | Path |
-| --- | --- |
-| Config | `~/Library/Application Support/ZenIT/Config/appsettings.json` |
-| IT policy | `~/Library/Application Support/ZenIT/Policy/itpolicy.json` |
-| Logs | `~/Library/Application Support/ZenIT/Logs/` |
-| Reports | `~/Library/Application Support/ZenIT/Reports/` |
-| Fallback log | `~/Library/Logs/ZenIT/ZenIT.log` |
+```text
+publish/macos/ZenIT-macOS.pkg
+```
 
-## Elevation model
+The installer places the application at:
 
-The app always runs non-elevated for employees. IT workflows flagged "requires admin"
-(DHCP renew, Wi-Fi restart, disk verify, software update install, Core Audio / printing /
-mDNSResponder restarts, Spotlight reindex) stop safely with "requires administrator
-permissions" unless the process runs as root (e.g. launched by IT through approved elevated
-tooling). This mirrors the Windows behavior where admin repairs stop when not elevated.
+```text
+/Applications/ZenIT.app
+```
+
+## System Locations
+
+The installer creates:
+
+```text
+/Library/Application Support/ZenIT/Config
+/Library/Application Support/ZenIT/Policy
+/Library/Logs/ZenIT
+/Users/Shared/ZenIT/Reports
+```
+
+It creates `appsettings.json` with:
+
+- `Language = en`
+- `Theme = Dark`
+- `UpdateChannel = Production`
+
+It creates protected `itpolicy.json` with standard ZenHR IT Mode policy:
+
+- `EnableITMode = true`
+- `ITModeUsername = Ghaith`
+- `ITModePasswordHash = 95FAB1FCF914BB5E3D56891BD2B1D03B40DD6066D3ED1327798A9673BB0A30FC`
+- `AllowITCredentialChanges = false`
+- `ContactITUrl = https://zenhr.slack.com/team/U09CGMUGV6K`
+- `ITModeSessionTimeoutMinutes = 15`
+
+The plaintext IT Mode password is not stored in the package, scripts, policy, or logs.
+
+## Permissions
+
+- Policy: root/admin write, everyone read-only.
+- Config: local users can update non-sensitive preferences such as language and theme.
+- Logs: local users can write support logs.
+- Reports: local users can write support packages.
+
+No LaunchAgent or background helper is installed. ZenIT only launches when opened by the user or management tooling.
+
+## Signing
+
+Unsigned packages can be built for internal testing:
+
+```bash
+./scripts/macos/build-pkg.sh
+```
+
+The script prints:
+
+```text
+Unsigned/not notarized package may trigger Gatekeeper warnings.
+```
+
+For deployment, sign with a Developer ID Installer certificate:
+
+```bash
+./scripts/macos/build-pkg.sh --sign "Developer ID Installer: ZenHR (TEAMID)"
+```
+
+## Notarization
+
+Using a notarytool keychain profile:
+
+```bash
+./scripts/macos/build-pkg.sh \
+  --sign "Developer ID Installer: ZenHR (TEAMID)" \
+  --notarize \
+  --keychain-profile "ZenHRNotary"
+```
+
+Using Apple ID credentials:
+
+```bash
+./scripts/macos/build-pkg.sh \
+  --sign "Developer ID Installer: ZenHR (TEAMID)" \
+  --notarize \
+  --apple-id "it@zenhr.com" \
+  --team-id "TEAMID" \
+  --password "@keychain:AC_PASSWORD"
+```
+
+The build script submits with `xcrun notarytool submit --wait` and staples with `xcrun stapler staple`.
+
+## Validation
+
+Package-only validation:
+
+```bash
+./scripts/macos/test-zenit-install.sh
+```
+
+Elevated silent install and launch validation:
+
+```bash
+sudo ./scripts/macos/test-zenit-install.sh --install --launch
+```
+
+Checks include:
+
+- Package exists and expands.
+- `/Applications/ZenIT.app` exists after install.
+- `appsettings.json` exists.
+- `itpolicy.json` exists.
+- Username is `Ghaith`.
+- Timeout is `15`.
+- Logs and Reports folders are writable.
+- App launches when requested.
+
+## JumpCloud Deployment
+
+Upload the package to a GitHub Release as:
+
+```text
+ZenIT-macOS.pkg
+```
+
+JumpCloud command:
+
+```bash
+curl -L -o /tmp/ZenIT-macOS.pkg "https://github.com/Ghaith-Naimat/ZenIT/releases/latest/download/ZenIT-macOS.pkg"
+sudo installer -pkg /tmp/ZenIT-macOS.pkg -target /
+```
+
+Start with a pilot device group before assigning the command to all managed Macs.
 
 ## Uninstall
 
+Remove the app while preserving logs and reports:
+
 ```bash
-./scripts/uninstall-zenit-mac.sh          # keeps user data
-./scripts/uninstall-zenit-mac.sh --purge  # removes user data too
+sudo rm -rf /Applications/ZenIT.app
 ```
 
-## Verification checklist
+Remove all machine-wide ZenIT data only after IT approval:
 
-- `dotnet test ZenIT.Mac.sln` - 54/54 tests green.
-- Launch the app: Home, Quick Fixes, My Device, IT Mode, and About pages render; EN/AR
-  language toggle flips layout to RTL.
-- Run "Check My Device" - a `DeviceReport-*.txt` appears in the Reports folder.
-- IT Mode unlock uses the standard configured username and password; failed attempts are
-  logged to `ITMode.log`.
+```bash
+sudo rm -rf "/Library/Application Support/ZenIT" /Library/Logs/ZenIT /Users/Shared/ZenIT
+```

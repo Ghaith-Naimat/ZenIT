@@ -10,8 +10,81 @@
 ## Prerequisites
 
 - Published `ZenIT.exe` is available at `C:\ZenIT\publish\win-x64\ZenIT.exe`, `C:\ZenIT\publish\win-x64-framework-dependent\ZenIT.exe`, or a reachable custom package path.
+- Inno Setup 6 is installed on the packaging machine when building the JumpCloud Custom Apps installer.
 - JumpCloud agent is healthy on pilot devices.
 - Pilot users are informed that ZenIT creates local logs and support packages under `C:\ProgramData\ZenIT`.
+
+## JumpCloud Custom Apps Installer
+
+JumpCloud Custom Apps expects a real installer package, not the raw `ZenIT.exe` application executable. ZenIT uses Inno Setup to produce a silent-installable Windows installer.
+
+Build the app and JumpCloud source EXE:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File C:\ZenIT\scripts\windows\Publish-ZenIT.ps1 -Mode SelfContained
+powershell -NoProfile -ExecutionPolicy Bypass -File C:\ZenIT\scripts\windows\Package-ZenIT-JumpCloud.ps1 -Mode SelfContained
+```
+
+Build the installer:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File C:\ZenIT\scripts\windows\Build-ZenITInstaller.ps1
+```
+
+Output:
+
+```text
+C:\ZenIT\publish\installer\ZenIT-Setup.exe
+```
+
+JumpCloud Custom Apps may reject unsigned EXE installers during package validation. For deployment, sign the installer with the ZenHR code-signing certificate:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File C:\ZenIT\scripts\windows\Build-ZenITInstaller.ps1 -Sign -CertificateThumbprint "<code-signing-certificate-thumbprint>"
+```
+
+The build script signs `ZenIT-Setup.exe` with `signtool.exe` and verifies:
+
+```powershell
+Get-AuthenticodeSignature C:\ZenIT\publish\installer\ZenIT-Setup.exe
+```
+
+The signature status must be `Valid` before uploading to JumpCloud Custom Apps.
+
+Validate the installer package:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File C:\ZenIT\scripts\windows\Test-ZenITInstaller.ps1
+```
+
+Optional elevated silent-install validation:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File C:\ZenIT\scripts\windows\Test-ZenITInstaller.ps1 -InstallSilently
+```
+
+### Custom App Settings
+
+- Application Name: `ZenIT`
+- Upload: `C:\ZenIT\publish\installer\ZenIT-Setup.exe`
+- Silent Install Flags: `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART`
+- Detection Method: `Display Name`
+- Expected Display Name: `ZenIT`
+- Deployment plan: start with a pilot device group before assigning to all devices.
+- Signing requirement: upload a signed installer. Unsigned EXE installers may fail JumpCloud package validation.
+
+The installer:
+
+- Installs `C:\Program Files\ZenIT\ZenIT.exe`.
+- Creates `C:\ProgramData\ZenIT\Config`, `Policy`, `Logs`, and `Reports`.
+- Creates or updates production `appsettings.json`.
+- Creates or updates protected `itpolicy.json` with the standard IT Mode username and SHA256 password hash.
+- Grants Users Modify permission on Config, Logs, and Reports.
+- Grants Users read-only access to Policy.
+- Preserves existing logs and reports during upgrades.
+- Creates Public Desktop and Start Menu shortcuts.
+- Registers ZenIT in Windows Apps & Features.
+- Supports `/SILENT`, `/VERYSILENT`, `/SUPPRESSMSGBOXES`, and `/NORESTART`.
 
 ## JumpCloud Package Size Strategy
 
@@ -149,7 +222,7 @@ Validation checks:
 powershell -NoProfile -ExecutionPolicy Bypass -File C:\ZenIT\scripts\windows\Publish-ZenIT.ps1 -Sign -CertificateThumbprint "<thumbprint>"
 ```
 
-Unsigned builds are allowed for local validation, but broad enterprise rollout should use a signed EXE and signed deployment scripts.
+Unsigned builds are allowed for local validation, but broad enterprise rollout should use a signed app EXE, signed installer EXE, and signed deployment scripts. JumpCloud Custom Apps may reject unsigned EXE installers.
 
 ## Uninstall Command
 

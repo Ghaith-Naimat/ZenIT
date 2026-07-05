@@ -12,7 +12,8 @@ Version: 1.0.0
 - `src/ZenIT.Mac.App` - Avalonia desktop app (same navigation, IT Mode, localization, and branding as the Windows WPF app).
 - `src/ZenIT.Mac.Core` - macOS port of ZenIT.Core: workflow registry/execution, device health, logging, reports, config, security helpers. Namespaces stay `ZenIT.Core.*` so files diff cleanly against the Windows core.
 - `src/ZenIT.Mac.Tests` - xUnit suite ported from the Windows tests (54 tests).
-- `scripts/` - publish (.app bundle + zip), install, and uninstall scripts.
+- `scripts/` - legacy publish/install helpers for local app bundle work.
+- `../scripts/macos` - JumpCloud-ready `.pkg` build, install-configuration, and validation scripts.
 - `docs/` - macOS deployment guide.
 
 ## Build & Test
@@ -33,12 +34,35 @@ dotnet run --project src/ZenIT.Mac.App/ZenIT.Mac.App.csproj
 The published bundle is created at `publish/<rid>/ZenIT.app` plus a deployable
 `publish/ZenIT-Mac-<rid>.zip`.
 
+## JumpCloud .pkg Installer
+
+JumpCloud deployment uses a `.pkg` installer, not a DMG:
+
+```bash
+../scripts/macos/build-pkg.sh --rid osx-arm64
+```
+
+Output:
+
+```text
+../publish/macos/ZenIT-macOS.pkg
+```
+
+Signed/notarized build example:
+
+```bash
+../scripts/macos/build-pkg.sh \
+  --sign "Developer ID Installer: ZenHR (TEAMID)" \
+  --notarize \
+  --keychain-profile "ZenHRNotary"
+```
+
 ## What changed vs. Windows
 
 | Area | Windows | macOS |
 | --- | --- | --- |
 | UI framework | WPF | Avalonia 11 |
-| Data root | `C:\ProgramData\ZenIT` | `~/Library/Application Support/ZenIT` |
+| Data root | `C:\ProgramData\ZenIT` | `/Library/Application Support/ZenIT` |
 | Open folder | `explorer.exe` | `open` (allowlisted to Logs/Reports) |
 | Flush DNS | `ipconfig /flushdns` | `dscacheutil -flushcache` (+ `killall -HUP mDNSResponder` when elevated) |
 | System repair | SFC / DISM | `diskutil verifyVolume /`, SIP/Gatekeeper/FileVault checks, Spotlight reindex |

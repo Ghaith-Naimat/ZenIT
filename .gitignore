@@ -7,3 +7,7 @@ obj/
 logs/*
 !logs/.gitkeep
 artifacts/
+publish/
+tmp/
+macos/publish/
+publish/macos/
