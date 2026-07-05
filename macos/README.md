@@ -57,6 +57,55 @@ Signed/notarized build example:
   --keychain-profile "ZenHRNotary"
 ```
 
+## GitHub Actions macOS Package
+
+You can build `ZenIT-macOS.pkg` without a physical Mac by running the GitHub Actions workflow on GitHub-hosted macOS runners.
+
+Manual run:
+
+1. Open the GitHub repository.
+2. Go to **Actions**.
+3. Select **Build macOS PKG**.
+4. Click **Run workflow**.
+
+The workflow:
+
+- Checks out the repository.
+- Installs .NET 8 SDK.
+- Builds `macos/ZenIT.Mac.sln`.
+- Runs the macOS tests.
+- Runs `./scripts/macos/build-pkg.sh --rid osx-arm64`.
+- Uploads `ZenIT-macOS.pkg` as a workflow artifact.
+
+Download artifact:
+
+1. Open the completed workflow run.
+2. Scroll to **Artifacts**.
+3. Download `ZenIT-macOS.pkg`.
+
+Release tags:
+
+When a tag starting with `v` is pushed, for example `v1.0.0`, the workflow also attaches:
+
+```text
+publish/macos/ZenIT-macOS.pkg
+```
+
+to the GitHub Release assets as:
+
+```text
+ZenIT-macOS.pkg
+```
+
+The package is currently unsigned in CI. Unsigned packages may show Apple Gatekeeper warnings until Developer ID Installer signing and notarization are configured.
+
+JumpCloud macOS deployment command:
+
+```bash
+curl -L -o /tmp/ZenIT-macOS.pkg "https://github.com/Ghaith-Naimat/ZenIT/releases/latest/download/ZenIT-macOS.pkg"
+sudo installer -pkg /tmp/ZenIT-macOS.pkg -target /
+```
+
 ## What changed vs. Windows
 
 | Area | Windows | macOS |

@@ -1,0 +1,58 @@
+name: Build macOS PKG
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos-pkg:
+    name: Build ZenIT macOS package
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Make macOS scripts executable
+        run: |
+          chmod +x scripts/macos/*.sh
+          chmod +x macos/scripts/*.sh
+
+      - name: Build macOS solution
+        run: dotnet build macos/ZenIT.Mac.sln -c Release
+
+      - name: Run macOS tests
+        run: dotnet test macos/ZenIT.Mac.sln
+
+      - name: Build unsigned macOS package
+        run: |
+          echo "::warning::Unsigned package may show Apple Gatekeeper warning."
+          ./scripts/macos/build-pkg.sh --rid osx-arm64
+
+      - name: Verify package output
+        run: |
+          test -f publish/macos/ZenIT-macOS.pkg
+          ls -lh publish/macos/ZenIT-macOS.pkg
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ZenIT-macOS.pkg
+          path: publish/macos/ZenIT-macOS.pkg
+          if-no-files-found: error
+
+      - name: Attach package to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: publish/macos/ZenIT-macOS.pkg
