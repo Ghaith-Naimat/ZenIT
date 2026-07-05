@@ -91,6 +91,8 @@ mkdir -p "$PAYLOAD_ROOT/Applications" "$PKG_SCRIPTS"
 
 ditto "$APP_INPUT" "$PAYLOAD_ROOT/Applications/ZenIT.app"
 cp "$SCRIPT_DIR/install-zenit.sh" "$PKG_SCRIPTS/postinstall"
+tr -d '\r' < "$PKG_SCRIPTS/postinstall" > "$PKG_SCRIPTS/postinstall.tmp"
+mv "$PKG_SCRIPTS/postinstall.tmp" "$PKG_SCRIPTS/postinstall"
 chmod 755 "$PKG_SCRIPTS/postinstall"
 
 pkgbuild \
